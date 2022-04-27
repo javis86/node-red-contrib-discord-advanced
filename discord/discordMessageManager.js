@@ -6,16 +6,17 @@ module.exports = function (RED) {
     MessageEmbed,
     MessageActionRow,
     MessageButton,
-    MessageSelectMenu,
-    MessageComponent
+    MessageSelectMenu
   } = require('discord.js');
 
-  function discordMessageManager(config) {
+   function discordMessageManager(config) {
     RED.nodes.createNode(this, config);
     var node = this;
     var configNode = RED.nodes.getNode(config.token);
-    discordBotManager.getBot(configNode).then(function (bot) {
-      node.on('input', function (msg, send, done) {
+    
+        
+    discordBotManager.getBot(configNode).then( bot => {
+      node.on('input', async function (msg, send, done) {
         const action = msg.action || 'create';
         const payload = msg.payload || ' ';
         const channel = config.channel || msg.channel || null;
@@ -23,8 +24,8 @@ module.exports = function (RED) {
         const message = msg.message || null;
         const inputEmbeds = msg.embeds || msg.embed;
         const timeDelay = msg.timedelay || 0;
-        const inputAttachments = msg.attachments || msg.attachment;        
-        const inputComponents = msg.components;        
+        const inputAttachments = msg.attachments || msg.attachment;
+        const inputComponents = msg.components;
 
         const setError = (error) => {
           node.status({
@@ -65,119 +66,94 @@ module.exports = function (RED) {
           }
         }
 
-        const getChannel = (id) => {
-          var promise = new Promise((resolve, reject) => {
-            bot.channels.fetch(id).then((channelInstance) => {
-              resolve(channelInstance);
-            }).catch(err => {
-              reject(err);
-            });
-          });
-          return promise;
+        const getChannel = async (id) => {
+          return await bot.channels.fetch(id);
         }
 
-        const getMessage = (channel, message) => {
-          var promise = new Promise((resolve, reject) => {
-            const channelID = checkIdOrObject(channel);
-            const messageID = checkIdOrObject(message);
-            if (!channelID) {
-              reject(`msg.channel wasn't set correctly`);
-            } else if (!messageID) {
-              reject(`msg.message wasn't set correctly`)
-            } else {
-              getChannel(channelID).then(channelInstance => {
-                return channelInstance.messages.fetch(messageID);
-              }).then(message => {
-                resolve(message);
-              }).catch(err => {
-                reject(err);
-              })
-            }
-          });
-          return promise;
+        const getMessage = async (channel, message) => {
+          const channelID = checkIdOrObject(channel);
+          const messageID = checkIdOrObject(message);
+          let channelInstance = await getChannel(channelID);
+          return await channelInstance.messages.fetch(messageID);
         }
 
-        const createPrivateMessage = () => {
+        const createPrivateMessage = async () => {
           const userID = checkIdOrObject(user);
           if (!userID) {
             setError(`msg.user wasn't set correctly`);
-          } else {
-            bot.users.fetch(userID).then(user => {
-              let messageObject = {};
-              messageObject.embeds = embeds;
-              messageObject.content = payload;
-              messageObject.files = attachments;
-              messageObject.components = components;
-              return user.send(messageObject);
-            }).then(message => {
-              setSucces(`message sent to ${message.channel.recipient.username}`, message)
-            }).catch(err => {
-              setError(err);
-            })
+            return;
+          }
+
+          try {
+            let user = await bot.users.fetch(userID);
+            let messageObject = {};
+            messageObject.embeds = embeds;
+            messageObject.content = payload;
+            messageObject.files = attachments;
+            messageObject.components = components;
+            let message = await user.send(messageObject);
+            setSucces(`message sent to ${message.channel.recipient.username}`, message)
+          } catch (error) {
+            setError(error);
           }
         }
 
-        const createChannelMessage = () => {
+        const createChannelMessage = async () => {
           const channelID = checkIdOrObject(channel);
           if (!channelID) {
             setError(`msg.channel wasn't set correctly`);
-          } else {
-            getChannel(channelID).then(channelInstance => {
-              let messageObject = {};
-              messageObject.embeds = embeds;
-              messageObject.content = payload;
-              messageObject.files = attachments;              
-              messageObject.components = components;
-              return channelInstance.send(messageObject);
-            }).then((message) => {
-              setSucces(`message sent, id = ${message.id}`, message);
-            }).catch(err => {
-              setError(err);
-            });
+            return;
+          }
+
+          try {
+            let channelInstance = await getChannel(channelID);
+            let messageObject = {};
+            messageObject.embeds = embeds;
+            messageObject.content = payload;
+            messageObject.files = attachments;
+            messageObject.components = components;
+            let discordMessage = await channelInstance.send(messageObject);
+            setSucces(`message sent, id = ${discordMessage.id}`, discordMessage);
+          } catch (error) {
+            setError(error);
           }
         }
 
-        const createMessage = () => {
+        const createMessage = async () => {
           if (user) {
-            createPrivateMessage();
+            await createPrivateMessage();
           } else if (channel) {
-            createChannelMessage();
+            await createChannelMessage();
           } else {
             setError('to send messages either msg.channel or msg.user needs to be set');
           }
         }
 
-        const editMessage = () => {
-          getMessage(channel, message)
-            .then(message => {
-              let messageObject = {};
-              messageObject.embeds = embeds;
-              messageObject.content = payload;
-              messageObject.files = attachments;
-              messageObject.components = components;
-              return message.edit(messageObject);
-            })
-            .then(message => {
-              setSucces(`message ${message.id} edited`, message);
-            })
-            .catch(err => {
-              setError(err);
-            })
+        const editMessage = async () => {
+          try {
+            let discordMessage = await getMessage(channel, message);
+
+            let messageObject = {};
+            messageObject.embeds = embeds;
+            messageObject.content = payload;
+            messageObject.files = attachments;
+            messageObject.components = components;
+            let messageEdited = await discordMessage.edit(messageObject);
+
+            setSucces(`message ${messageEdited.id} edited`, messageEdited);
+          } catch (error) {
+            setError(err);
+          }
         }
 
-        const deleteMessage = () => {
-          getMessage(channel, message)
-            .then(message => {
-              return message.delete({
-                timeout: timeDelay
-              });
-            })
-            .then(message => {
-              setSucces(`message ${message.id} deleted`, message);
-            })
-            .catch(err => {
-              setError(err);
-            })
+        const deleteMessage = async () => {
+          try {
+            let discordMessage = await getMessage(channel, message);
+            await discordMessage.delete({ timeout: timeDelay });
+            setSucces(`message ${discordMessage.id} deleted`, discordMessage);
+          } catch (error) {
+            setError(error);
+          }
         }
 
         var attachments = [];
@@ -209,8 +185,7 @@ module.exports = function (RED) {
         var components = [];
         if (inputComponents) {
           inputComponents.forEach(component => {
-            if(component.type == 1)
-            {
+            if (component.type == 1) {
               var actionRow = new MessageActionRow();
               component.components.forEach(subComponentData => {
                 switch (subComponentData.type) {
@@ -218,24 +193,24 @@ module.exports = function (RED) {
                     actionRow.addComponents(new MessageButton(subComponentData));
                     break;
                   case 3:
-                    actionRow.addComponents(new MessageSelectMenu(subComponentData));                    
+                    actionRow.addComponents(new MessageSelectMenu(subComponentData));
                     break;
                 }
               });
               components.push(actionRow);
-            }                       
-          });        
+            }
+          });
         }
 
         switch (action.toLowerCase()) {
           case 'create':
-            createMessage();
+            await createMessage();
             break;
           case 'edit':
-            editMessage();
+            await editMessage();
             break;
           case 'delete':
-            deleteMessage();
+            await deleteMessage();
             break;
           default:
             setError(`msg.action has an incorrect value`)
@@ -245,9 +220,10 @@ module.exports = function (RED) {
           discordBotManager.closeBot(bot);
         });
       });
-    }).catch(err => {
-      console.log(err);
-    });
+    }).catch( error => {
+      console.log(error);
+    });    
   }
+
   RED.nodes.registerType("discordMessageManager", discordMessageManager);
 };

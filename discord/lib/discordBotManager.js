@@ -3,8 +3,7 @@ const {
   Intents,
 } = require('discord.js');
 var bots = new Map();
-var getBot = function (configNode) {
-  var promise = new Promise(function (resolve, reject) {
+var getBot = async function (configNode) {  
     var bot = undefined;
     if (bots.get(configNode) === undefined) {
       bot = new Client({
@@ -21,21 +20,35 @@ var getBot = function (configNode) {
           "MESSAGE"
         ]
       });
+      bot.numReferences = (bot.numReferences || 0) + 1;      
       bots.set(configNode, bot);
-      bot.numReferences = (bot.numReferences || 0) + 1;
-      bot.login(configNode.token).then(function () {
-        resolve(bot);
-      }).catch(function (err) {
-        reject(err);
-      });
+      
+      // bot.getChannel = async (id) => {
+      //   return await this.channels.fetch(id);
+      // }
+
+      // bot.getMessage = async (channel, message) => {        
+      //   const channelID = checkIdOrObject(channel);
+      //   const messageID = checkIdOrObject(message);
+      //   if (!channelID) {
+      //     throw new Error(`channel wasn't set correctly`);
+      //   } else if (!messageID) {
+      //     throw new Error(`message wasn't set correctly`);
+      //   } else {
+      //     let channel = await this.getChannel(channelID)
+      //     return await channel.messages.fetch(messageID);
+      //   }
+      // }
+
+      await bot.login(configNode.token);
+      return bot;
     } else {
       bot = bots.get(configNode);
       bot.numReferences = (bot.numReferences || 0) + 1;
-      resolve(bot);
+      return bot;
     }
-  });
-  return promise;
 };
+
 var closeBot = function (bot) {
   bot.numReferences -= 1;
   setTimeout(function () {
