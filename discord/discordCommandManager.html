@@ -1,0 +1,75 @@
+a<script type="text/javascript">
+  RED.nodes.registerType('discordCommandManager', {
+    category: 'discord',
+    color: '#7289da',
+    defaults: {
+      name: {
+        value: "",
+        required: false
+      },
+      guild: {
+        value: null,
+        required: false
+      },
+      token: {
+        value: "",
+        required: true,
+        type: "discord-token"
+      }
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "discord.png",
+    label: function () {
+      return this.name || "discordCommandManager";
+    }
+  });
+</script>
+<script type="text/x-red" data-template-name="discordCommandManager">
+  <div class="form-row">
+        <label for="node-input-token"><i class="icon-tag"></i> token</label>
+        <input type="text" id="node-input-token" placeholder="token">
+    </div>
+    <div class="form-row">
+        <label for="node-input-guild"><i class="icon-tag"></i> Guild</label>
+        <input type="text" id="node-input-guild" name="guild" placeholder="Guild ID">
+        <p>(leave 'guild' blank to use <code>msg.guild</code> as guild ID to send to)</p>
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+<script type="text/x-red" data-help-name="discordCommandManager">
+  <p>Node to set the application commands for the bot, as well as delete specific commands or all commands, by guild or globally.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>action
+      <span class="property-type">string</span>
+    </dt>
+    <dd>The action to do, can be: set, or delete.</dd>
+    <dt>guild
+      <span class="property-type">Object or string</span>
+    </dt>
+    <dd>The guild object or ID.</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload
+      <span class="property-type">Object</span>
+    <dt>
+    <dd>When setting the commands it will return an array of the commands created. It will be the type of the application command (https://discord.js.org/docs/packages/discord.js/14.15.3/ApplicationCommand:Class) or guild command if the guildId is set.</dd>
+  </dl>
+
+  <h3>Details</h3>
+  <p>This node can set and delete application commands.<p>
+
+  <h4>Setting commands<h4>
+  <p>To set commands simply set msg.commands to an array of the commands you'd like to set for the bot. The array objects must be of the slash command form. An example can be found using the slash command builder (https://discordjs.guide/creating-your-bot/slash-commands.html#individual-command-files). If the guild is not set then it will be applied globally, if guild is set then its applied only to that guild.</p>
+
+  <h4>Setting commands<h4>
+  <p>To delete a specific command set commandId to the id of the command you wish to be deleted (which can be found by remembering the output of the add command, or by going into server and checking the intergration, right clicking will get the application command id (https://discordjs.guide/slash-commands/deleting-commands.html#deleting-specific-commands)). Note the command Id must be in the form of a string, e.g. '123534523423423'. To delete all commands do not set msg.commandId. Similiarly to the set command, you can set a guild to delete a command in a specific guild, or by not setting guild the command will be deleted across all guilds.</p>
+
+</script>

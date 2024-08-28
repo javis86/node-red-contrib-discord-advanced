@@ -43,7 +43,8 @@
       "discordInteractionManager": "discord/discordInteractionManager.js",
       "discordTyping": "discord/discordTyping.js",
       "discordGuildManager": "discord/discordGuildManager.js",
-      "discordEventManager": "discord/discordEventManager.js"
+      "discordEventManager": "discord/discordEventManager.js",
+      "discordCommandManager": "discord/discordCommandManager.js"
     }
   },
   "devDependencies": {
