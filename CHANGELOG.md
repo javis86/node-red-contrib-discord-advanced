@@ -1,5 +1,10 @@
 # Changelog\
 
+## [Unreleased]
+* Feature - Added DiscordCommandManager
+* Feature - Added DiscordEventManager
+* Feature - Added DiscordGuildManager
+
 ## 3.5.2
 * Feature - Modals!!!!!. In order to handle modal interactions, discordInteraction lets choose between defer reply or "do nothing". "Do nothing" lets you show showModals for commands interactions.
 * Feature - DiscordInteractionManager can reply "non replied interactions". This features connects with "do nothing" options in discordInteraction.

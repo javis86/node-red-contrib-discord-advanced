@@ -43,6 +43,9 @@ node-red-contrib-discord-advanced gives you access to 10 nodes:
 * **discordChannelName** allows you to change a channel's name.
 * **discordMember** listens when a user joins or leaves a guild.
 * **discordTyping** creates a 'bot is typing...' message on a channel.
+* **discordEventManager** (unreleased)
+* **discordGuildManager** (unreleased)
+* **discordCommandManager** (unreleased)
 
 ## Changelog
 
