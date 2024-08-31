@@ -1,6 +1,6 @@
 module.exports = function (RED) {
   var discordBotManager = require('node-red-contrib-discord-advanced/discord/lib/discordBotManager.js');
-  var messagesFormatter = require('node-red-contrib-discord-advanced/discord/lib/messagesFormatter.js');
+  const { checkIdOrObject } = require('./lib/discordFramework.js');
 
 
   const Flatted = require('flatted');
@@ -19,11 +19,8 @@ module.exports = function (RED) {
       node.on('input', async function (msg, send, done) {
         const _guildId = config.guild || msg.guild || null;
         const _action = msg.action || null;
-
         const _commands = msg.commands || null;
         const _commandID = msg.commandId || null;
-
-      
 
         const setError = (error) => {
           node.status({
@@ -45,107 +42,57 @@ module.exports = function (RED) {
           send(msg);
           done();
         }
-
-        const checkIdOrObject = (check) => {
-          try {
-            if (typeof check !== 'string') {
-              if (check.hasOwnProperty('id')) {
-                return check.id;
-              } else {
-                return false;
-              }
-            } else {
-              return check;
-            }
-          } catch (error) {
-            return false;
-          }
-        }
-
-
-        const deleteCommand = async () => {
-
-          try {
-   
-            let commandId = _commandID
-
-            const rest = new REST().setToken(bot.token);
-
-            const guildId = checkIdOrObject(_guildId)
-
-            let data = null
-
-            if ( commandId != null ){
-
-              if ( guildId ) {
-
     
+        const deleteCommand = async () => {
+          try {
 
-                data = await rest.delete(Routes.applicationGuildCommand(bot.id, guildId, commandId))
+            let commandId = _commandID;
+            const rest = new REST().setToken(bot.token);
+            const guildId = checkIdOrObject(_guildId);
 
+            let data = null;
+
+            if (commandId != null) {
+              if (guildId) {
+                data = await rest.delete(Routes.applicationGuildCommand(bot.id, guildId, commandId));
               }
               else {
-
                 data = await rest.delete(Routes.applicationCommand(bot.id, commandId))
-  
               }
-  
-              if ( data == null ){
-  
-                setError( `Could not delete application (/) command '${commandId}'.`);
-  
+
+              if (data == null) {
+                setError(`Could not delete application (/) command '${commandId}'.`);
               }
               else {
-  
-                setSuccess(`Successfully deleted application (/) command '${commandId}'.` , data );
-  
+                setSuccess(`Successfully deleted application (/) command '${commandId}'.`, data);
               }
 
             }
             else {
 
-              if ( guildId ) {
-
-                data = await rest.put(Routes.applicationGuildCommands(bot.id, guildId), {body:[]} )
-
+              if (guildId) {
+                data = await rest.put(Routes.applicationGuildCommands(bot.id, guildId), { body: [] })
               }
               else {
-
-                data = await rest.put(Routes.applicationCommands(bot.id), {body:[]} )
-  
+                data = await rest.put(Routes.applicationCommands(bot.id), { body: [] })
               }
-  
-              if ( data == null ){
-  
-                setError( `Could not delete all application (/) commands.`);
-  
+
+              if (data == null) {
+                setError(`Could not delete all application (/) commands.`);
               }
               else {
-  
-                setSuccess(`Successfully deleted all application (/) commands.` , data );
-  
+                setSuccess(`Successfully deleted all application (/) commands.`, data);
               }
-
             }
-
-            
-           
-            
-
           } catch (err) {
-
             setError(err);
-
           }
         }
 
         const setCommand = async () => {
-
-
-
           try {
-   
-            let commands = _commands
+
+            let commands = _commands;
 
             if (commands == null) {
               setError(`msg.commands wasn't set correctly`);
@@ -153,68 +100,46 @@ module.exports = function (RED) {
             }
             else {
 
-              if ( commands.length == 0 ){
+              if (commands.length == 0) {
 
                 setError(`msg.commands wasn't set correctly`);
                 return;
-
               }
-
             }
 
             const rest = new REST().setToken(bot.token);
+            const guildId = checkIdOrObject(_guildId);
 
-            const guildId = checkIdOrObject(_guildId)
+            let data = null;
 
-            let data = null
-
-            if ( guildId ) {
-
+            if (guildId) {
               data = await rest.put(
                 Routes.applicationGuildCommands(bot.id, guildId),
                 { body: commands },
               );
-  
-
             }
             else {
-
               data = await rest.put(
                 Routes.applicationCommands(bot.id),
                 { body: commands },
               );
-  
-
             }
 
-            if ( data == null ){
-
-              setError( "Could not set application commands");
-
+            if (data == null) {
+              setError("Could not set application commands");
             }
             else {
-
-              setSuccess(`Successfully reloaded ${data.length} application (/) commands.` , data );
-
+              setSuccess(`Successfully reloaded ${data.length} application (/) commands.`, data);
             }
-           
-            
-
           } catch (err) {
-
             setError(err);
-
           }
         }
 
-
-        if ( _action == null ){
-
+        if (_action == null) {
           setError(`msg.action has no value`)
-
         }
         else {
-
           switch (_action.toLowerCase()) {
             case 'set':
               await setCommand();
@@ -225,10 +150,7 @@ module.exports = function (RED) {
             default:
               setError(`msg.action has an incorrect value`)
           }
-
         }
-
-     
 
         node.on('close', function () {
           discordBotManager.closeBot(bot);
