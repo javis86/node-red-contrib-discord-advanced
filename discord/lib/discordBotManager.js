@@ -24,12 +24,19 @@ var getBot = function (configNode) {
         ]
       });
       bots.set(configNode, bot);
+      bot.token = configNode.token
       bot.numReferences = (bot.numReferences || 0) + 1;
-      bot.login(configNode.token).then(function () {
-        resolve(bot);
-      }).catch(function (err) {
-        reject(err);
-      });
+      bot.login(configNode.token)
+        .then(() => {
+          return bot.application.fetch(); // Fetch the application to get the ID
+        })
+        .then((app) => {
+          bot.id = app.id; // Set the application ID as a property on the bot object
+          resolve(bot);
+        })
+        .catch((err) => {
+          reject(err);
+        });
     } else {
       bot = bots.get(configNode);
       bot.numReferences = (bot.numReferences || 0) + 1;
