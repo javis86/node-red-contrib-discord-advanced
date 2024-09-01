@@ -14,9 +14,9 @@ module.exports = function (RED) {
 
     bot.then(function (bot) {
       node.on('input', async function (msg, send, done) {
-        const _guildId = config.guild || msg.guild || null;
+        const _guildId = config.guild || msg.guild || msg.guildId || null;
         const _action = msg.action || null;
-        const _commands = msg.commands || msg.command || null;
+        const _commands = msg.commands || msg.command || msg.commandId || null;
         const _commandID = msg.commandId || null;
 
         const setError = (error) => {
@@ -61,6 +61,44 @@ module.exports = function (RED) {
             }
             else {
               setSuccess(`Successfully deleted application (/) command '${commandId}'.`, data);
+            }
+          } catch (err) {
+            setError(err);
+          }
+        }
+
+        const getCommands = async () => {
+          try {
+
+            const rest = new REST().setToken(bot.token);
+            const commandId = checkIdOrObject(_commandID);
+            const guildId = checkIdOrObject(_guildId);
+
+            let data = null;
+
+            if (guildId) {
+              if(commandId){                
+                data = await rest.get(Routes.applicationGuildCommand(bot.id, guildId, commandId));
+              }
+              else{                
+                data = await rest.get(Routes.applicationGuildCommands(bot.id, guildId));
+              }
+            }
+            else {
+              if (commandId)
+              {                
+                data = await rest.get(Routes.applicationCommand(bot.id, commandId));
+              }
+              else{                
+                data = await rest.get(Routes.applicationCommands(bot.id));
+              }
+            }
+
+            if (data == null) {
+              setError(`Could not get application (/) command '${commandId}'.`);
+            }
+            else {
+              setSuccess(`Successfully get application (/) command '${commandId}'.`, data);
             }
           } catch (err) {
             setError(err);
@@ -144,6 +182,9 @@ module.exports = function (RED) {
               break;
             case 'deleteall':
               await deleteAllCommand();
+              break;
+            case 'get':
+              await getCommands();
               break;
             default:
               setError(`msg.action has an incorrect value`)
