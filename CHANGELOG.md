@@ -1,6 +1,6 @@
 # Changelog\
 
-## [Unreleased]
+## 3.6.0
 * Feature - Added DiscordCommandManager
 * Feature - Added DiscordEventManager
 * Feature - Added DiscordGuildManager

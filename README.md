@@ -31,7 +31,7 @@ The [Wiki](https://github.com/Markoudstaal/node-red-contrib-discord-advanced/wik
 
 ## Nodes
 
-node-red-contrib-discord-advanced gives you access to 10 nodes:
+node-red-contrib-discord-advanced gives you access to 13 nodes:
 
 * **discordMessage** is a node with no inputs and one output allowing you to receive notifications of incoming messages.
 * **discordMessageManager** allows (embed) messages to be sent to either channels or privatly to user. It also allows for editing and deleting of (embed) messages.
@@ -43,9 +43,9 @@ node-red-contrib-discord-advanced gives you access to 10 nodes:
 * **discordChannelName** allows you to change a channel's name.
 * **discordMember** listens when a user joins or leaves a guild.
 * **discordTyping** creates a 'bot is typing...' message on a channel.
-* **discordEventManager** (unreleased)
-* **discordGuildManager** (unreleased)
-* **discordCommandManager** (unreleased)
+* **discordEventManager** allows you to create, delete, and get info events.
+* **discordGuildManager** allows you to get info about guilds and change name of of guilds.
+* **discordCommandManager** allows you to create, update and delete global application commands and guild application commands.
 
 ## Changelog
 
