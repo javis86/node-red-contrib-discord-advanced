@@ -22,6 +22,9 @@ Currently the following actions are supported:
 * Get permissions of a specific user. Add and remove roles. Listen when a user joins or leaves a guild.
 * Change channel's name.
 * Allow full control over the BOT by access to the DiscordJS client.
+* Create, update, delete and get Application commands.
+* Create, delete and get events.
+* Obtain info and change name of a guild.
 
 This repository builds on [node-red-contrib-discord](https://github.com/jorisvddonk/node-red-contrib-discord) by Joris vd Donk . The main intention is to add more features and keep the repository updated.
 
