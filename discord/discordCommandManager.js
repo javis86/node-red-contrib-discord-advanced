@@ -1,12 +1,9 @@
 module.exports = function (RED) {
   var discordBotManager = require('node-red-contrib-discord-advanced/discord/lib/discordBotManager.js');
   const { checkIdOrObject } = require('./lib/discordFramework.js');
-
-
   const Flatted = require('flatted');
   const { REST, Routes } = require('discord.js');
-
-  const checkString = (field) => typeof field === 'string' ? field : false;
+  
 
   function discordCommandManager(config) {
     RED.nodes.createNode(this, config);
@@ -19,7 +16,7 @@ module.exports = function (RED) {
       node.on('input', async function (msg, send, done) {
         const _guildId = config.guild || msg.guild || null;
         const _action = msg.action || null;
-        const _commands = msg.commands || null;
+        const _commands = msg.commands || msg.command || null;
         const _commandID = msg.commandId || null;
 
         const setError = (error) => {
@@ -42,7 +39,7 @@ module.exports = function (RED) {
           send(msg);
           done();
         }
-    
+
         const deleteCommand = async () => {
           try {
 
@@ -52,37 +49,43 @@ module.exports = function (RED) {
 
             let data = null;
 
-            if (commandId != null) {
-              if (guildId) {
-                data = await rest.delete(Routes.applicationGuildCommand(bot.id, guildId, commandId));
-              }
-              else {
-                data = await rest.delete(Routes.applicationCommand(bot.id, commandId))
-              }
-
-              if (data == null) {
-                setError(`Could not delete application (/) command '${commandId}'.`);
-              }
-              else {
-                setSuccess(`Successfully deleted application (/) command '${commandId}'.`, data);
-              }
-
+            if (guildId) {
+              data = await rest.delete(Routes.applicationGuildCommand(bot.id, guildId, commandId));
             }
             else {
+              data = await rest.delete(Routes.applicationCommand(bot.id, commandId))
+            }
 
-              if (guildId) {
-                data = await rest.put(Routes.applicationGuildCommands(bot.id, guildId), { body: [] })
-              }
-              else {
-                data = await rest.put(Routes.applicationCommands(bot.id), { body: [] })
-              }
+            if (data == null) {
+              setError(`Could not delete application (/) command '${commandId}'.`);
+            }
+            else {
+              setSuccess(`Successfully deleted application (/) command '${commandId}'.`, data);
+            }
+          } catch (err) {
+            setError(err);
+          }
+        }
 
-              if (data == null) {
-                setError(`Could not delete all application (/) commands.`);
-              }
-              else {
-                setSuccess(`Successfully deleted all application (/) commands.`, data);
-              }
+        const deleteAllCommand = async () => {
+          try {
+            const rest = new REST().setToken(bot.token);
+            const guildId = checkIdOrObject(_guildId);
+
+            let data = null;
+
+            if (guildId) {
+              data = await rest.put(Routes.applicationGuildCommands(bot.id, guildId), { body: [] })
+            }
+            else {
+              data = await rest.put(Routes.applicationCommands(bot.id), { body: [] })
+            }
+
+            if (data == null) {
+              setError(`Could not delete all application (/) commands.`);
+            }
+            else {
+              setSuccess(`Successfully deleted all application (/) commands.`, data);
             }
           } catch (err) {
             setError(err);
@@ -98,14 +101,6 @@ module.exports = function (RED) {
               setError(`msg.commands wasn't set correctly`);
               return;
             }
-            else {
-
-              if (commands.length == 0) {
-
-                setError(`msg.commands wasn't set correctly`);
-                return;
-              }
-            }
 
             const rest = new REST().setToken(bot.token);
             const guildId = checkIdOrObject(_guildId);
@@ -113,13 +108,13 @@ module.exports = function (RED) {
             let data = null;
 
             if (guildId) {
-              data = await rest.put(
+              data = await rest.post(
                 Routes.applicationGuildCommands(bot.id, guildId),
                 { body: commands },
               );
             }
             else {
-              data = await rest.put(
+              data = await rest.post(
                 Routes.applicationCommands(bot.id),
                 { body: commands },
               );
@@ -135,7 +130,7 @@ module.exports = function (RED) {
             setError(err);
           }
         }
-
+       
         if (_action == null) {
           setError(`msg.action has no value`)
         }
@@ -143,9 +138,12 @@ module.exports = function (RED) {
           switch (_action.toLowerCase()) {
             case 'set':
               await setCommand();
-              break;
+              break;            
             case 'delete':
               await deleteCommand();
+              break;
+            case 'deleteAll':
+              await deleteAllCommand();
               break;
             default:
               setError(`msg.action has an incorrect value`)
