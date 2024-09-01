@@ -1,5 +1,5 @@
 
-const { Client, GatewayIntentBits, Partials, GuildScheduledEventManager } = require('discord.js');
+const { GuildScheduledEventManager } = require('discord.js');
 
 const checkIdOrObject = (check) => {
     try {
@@ -32,7 +32,6 @@ const getEventManager = async (bot, id) => {
     return new GuildScheduledEventManager(guild);
 }
 
-
 const getChannel = async (bot, id) => {
     const channelID = checkIdOrObject(id);
     if (!channelID) {
@@ -60,5 +59,4 @@ module.exports = {
     getGuild: getGuild,
     getChannel: getChannel,
     getEventManager: getEventManager
-
 };
