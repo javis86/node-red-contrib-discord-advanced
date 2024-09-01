@@ -142,7 +142,7 @@ module.exports = function (RED) {
             case 'delete':
               await deleteCommand();
               break;
-            case 'deleteAll':
+            case 'deleteall':
               await deleteAllCommand();
               break;
             default:
